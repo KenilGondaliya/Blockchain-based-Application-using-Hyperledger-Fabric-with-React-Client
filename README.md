@@ -98,6 +98,131 @@ Backend must send 5 parameters.
 
 ---
 
+# 🧪 Testing Chaincode Directly (Without Backend & Frontend)
+
+This section explains how to test the blockchain using Fabric CLI only.
+
+This is useful for:
+- Debugging chaincode
+- Checking if network works
+- Testing before integrating backend
+- Verifying parameter issues
+
+---
+
+# ✅ Step 1 — Set Org1 Environment
+
+cd fabric-samples/test-network
+
+source scripts/envVar.sh
+setGlobals 1
+
+---
+
+# 🔍 Step 2 — Query Chaincode Definition
+
+peer lifecycle chaincode querycommitted \
+--channelID mychannel \
+--name basic
+
+---
+
+# ➕ Step 3 — Create Asset (CLI)
+
+Official chaincode requires 5 parameters:
+
+id, color, size, owner, appraisedValue
+
+Example:
+
+peer chaincode invoke -o localhost:7050 \
+--ordererTLSHostnameOverride orderer.example.com \
+--tls \
+--cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" \
+-C mychannel \
+-n basic \
+--peerAddresses localhost:7051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" \
+--peerAddresses localhost:9051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" \
+-c '{"function":"CreateAsset","Args":["asset1","blue","10","keni","1000"]}'
+
+---
+
+# 📖 Step 4 — Read Asset (CLI)
+
+peer chaincode query -C mychannel -n basic \
+-c '{"Args":["ReadAsset","asset1"]}'
+
+Expected output:
+
+{
+  "ID": "asset1",
+  "color": "blue",
+  "size": 10,
+  "owner": "keni",
+  "appraisedValue": 1000
+}
+
+---
+
+# 🔄 Step 5 — Update Asset (CLI)
+
+peer chaincode invoke -o localhost:7050 \
+--ordererTLSHostnameOverride orderer.example.com \
+--tls \
+--cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" \
+-C mychannel \
+-n basic \
+--peerAddresses localhost:7051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" \
+--peerAddresses localhost:9051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" \
+-c '{"function":"UpdateAsset","Args":["asset1","red","20","keni","2000"]}'
+
+---
+
+# ❌ Step 6 — Delete Asset (CLI)
+
+peer chaincode invoke -o localhost:7050 \
+--ordererTLSHostnameOverride orderer.example.com \
+--tls \
+--cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" \
+-C mychannel \
+-n basic \
+--peerAddresses localhost:7051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" \
+--peerAddresses localhost:9051 \
+--tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" \
+-c '{"function":"DeleteAsset","Args":["asset1"]}'
+
+---
+
+# 📋 Query All Assets
+
+peer chaincode query -C mychannel -n basic \
+-c '{"Args":["GetAllAssets"]}'
+
+---
+
+# 🚨 If peer command not found
+
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=${PWD}/../config/
+
+---
+
+# 🧠 Why CLI Testing Is Important
+
+Always verify:
+
+1. Network is running
+2. Chaincode is deployed
+3. Parameters match function
+4. Ledger updates correctly
+
+Only after CLI works should backend & frontend be tested.
+
 # 🖥 Backend Setup
 
 cd backend
